@@ -9,7 +9,7 @@ create table likes (
 
 drop table if exists messages;
 create table messages (
-  message_id integer primary key,
+  message_id integer,
   chat_id integer,
   user_id integer
 );

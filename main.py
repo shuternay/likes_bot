@@ -3,7 +3,7 @@
 import database
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, BaseFilter, CallbackQueryHandler, CommandHandler, MessageHandler, Filters
+from telegram.ext import Updater, BaseFilter, CallbackQueryHandler, MessageHandler, Filters
 import logging
 
 import os
@@ -26,31 +26,43 @@ def help(bot, update):
     update.message.reply_text('Help!')
 
 
-LIKE_TEXT = '👍'
-DISLIKE_TEXT = '👎'
-BAYAN_TEXT = '[:||||:]'
+BUTTONS = [
+    (u'\U0001F44D', '1'),
+    (u'\U0001F44E', '2'),
+    (u'\U0001F44D [:||||:]', '4'),
+    (u'\U0001F44E [:||||:]', '3')
+]
+
+
+def format_message_text(user, caption):
+    return '{0}\nSender: {1}'.format(
+        caption or '',
+        (user.first_name or '') + ' ' + (user.last_name or '')
+    )
 
 
 def echo(bot, update):
-    reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton(LIKE_TEXT, callback_data='1'),
-                                          InlineKeyboardButton(DISLIKE_TEXT, callback_data='2'),
-                                          InlineKeyboardButton(BAYAN_TEXT, callback_data='3')]])
+    reply_markup = InlineKeyboardMarkup([
+        [InlineKeyboardButton(text, callback_data=data) for text, data in BUTTONS[:2]],
+        [InlineKeyboardButton(text, callback_data=data) for text, data in BUTTONS[2:]]])
 
     if update.message.photo:
-        text = '{1}\nSender: {0}'.format((update.message.from_user.first_name or '') + ' ' + (update.message.from_user.last_name or ''),
-                                         update.message.caption or '')
+        text = format_message_text(update.message.from_user, update.message.caption)
         bot_msg = bot.send_photo(
             chat_id=update.message.chat_id, reply_markup=reply_markup,
             caption=text, photo=update.message.photo[-1].file_id)
+    elif update.message.video:
+        text = format_message_text(update.message.from_user, update.message.caption)
+        bot_msg = bot.send_video(
+            chat_id=update.message.chat_id, reply_markup=reply_markup,
+            caption=text, video=update.message.video.file_id)
     elif update.message.document:
-        text = '{1}\nSender: {0}'.format((update.message.from_user.first_name or '') + ' ' + (update.message.from_user.last_name or ''),
-                                         update.message.caption or '')
+        text = format_message_text(update.message.from_user, update.message.caption)
         bot_msg = bot.send_document(
             chat_id=update.message.chat_id, reply_markup=reply_markup,
             caption=text, document=update.message.document.file_id)
     else:
-        text = '{1}\nSender: {0}'.format((update.message.from_user.first_name or '') + ' ' + (update.message.from_user.last_name or ''),
-                                         update.message.text)
+        text = format_message_text(update.message.from_user, update.message.text)
         bot_msg = bot.send_message(chat_id=update.message.chat_id, reply_markup=reply_markup, text=text)
 
     database.add_message(bot_msg.message_id, update.message.chat_id, update.message.from_user.id)
@@ -96,13 +108,12 @@ def button(bot, update):
         query.answer()
         return
 
-    like_text = LIKE_TEXT if len(likes[1]) == 0 else '{0} {1}'.format(LIKE_TEXT, len(likes[1]))
-    dislike_text = DISLIKE_TEXT if len(likes[2]) == 0 else '{0} {1}'.format(DISLIKE_TEXT, len(likes[2]))
-    bayan_text = BAYAN_TEXT if len(likes[3]) == 0 else '{0} {1}'.format(BAYAN_TEXT, len(likes[3]))
+    button_text = [(text if len(likes[int(data)]) == 0 else '{0} {1}'.format(text, len(likes[int(data)])), data)
+                   for text, data in BUTTONS]
 
-    reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton(like_text, callback_data='1'),
-                                          InlineKeyboardButton(dislike_text, callback_data='2'),
-                                          InlineKeyboardButton(bayan_text, callback_data='3')]])
+    reply_markup = InlineKeyboardMarkup([
+        [InlineKeyboardButton(text, callback_data=data) for text, data in button_text[:2]],
+        [InlineKeyboardButton(text, callback_data=data) for text, data in button_text[2:]]])
     if modified:
         if query.message.text:
             bot.edit_message_text(
@@ -133,14 +144,14 @@ def main():
     # dp.add_handler(CommandHandler("start", start))
     # dp.add_handler(CommandHandler("help", help))
 
-    dp.add_handler(MessageHandler(Filters.photo | Filters.document, echo))
+    dp.add_handler(MessageHandler(Filters.photo | Filters.video | Filters.document, echo))
     # dp.add_handler(CommandHandler("likes", echo))
     dp.add_handler(MessageHandler(PastaFilter(), echo))
     dp.add_handler(CallbackQueryHandler(button))
 
     dp.add_error_handler(error)
 
-    updater.start_polling()
+    updater.start_polling(poll_interval=1.0)
 
     updater.idle()
 

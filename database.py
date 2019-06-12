@@ -53,12 +53,21 @@ def remove_like(chat_id, message_id, user_id, like_type):
 def get_likes(chat_id, message_id):
     db = get_db()
     likes = {}
-    for like_type in [1, 2, 3]:
+    for like_type in [1, 2, 3, 4]:
         cur = db.execute('select user_id from likes where chat_id = ? and message_id = ? and like_type = ?',
                          (chat_id, message_id, like_type))
         entries = cur.fetchall()
         likes[like_type] = [x['user_id'] for x in entries]
 
+    return likes
+
+
+def get_all_likes(chat_id):
+    db = get_db()
+    cur = db.execute('select user_id, message_id, like_type from likes where chat_id = ?',
+                     (chat_id, ))
+    entries = cur.fetchall()
+    likes = [(x['message_id'], x['user_id'], x['like_type']) for x in entries]
     return likes
 
 
