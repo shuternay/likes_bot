@@ -1,6 +1,6 @@
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 
-from models import Like, Message
+from models import Like
 
 
 def format_text(user, text):

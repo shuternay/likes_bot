@@ -16,9 +16,9 @@ config.read(config_path)
 
 # Main
 DEBUG = config.getboolean('main', 'DEBUG')
-THRESHOLD = config.getint('main', 'THRESHOLD')
-INCLUDE_TAGS = config.get('main', 'INCLUDE_TAGS').split(', ')
-EXCLUDE_TAGS = config.get('main', 'EXCLUDE_TAGS').split(', ')
+DELETE_THRESHOLD = config.getint('main', 'DELETE_THRESHOLD')
+INCLUDE_TAGS = [x.strip() for x in config.get('main', 'INCLUDE_TAGS').split(',')]
+EXCLUDE_TAGS = [x.strip() for x in config.get('main', 'EXCLUDE_TAGS').split(',')]
 
 # Telegram
 POLL_INTERVAL = config.getfloat('telegram', 'POLL_INTERVAL')
@@ -58,17 +58,17 @@ LOGGING = {
     'loggers': {
         'request': {
             'handlers': ['console', 'syslog', ],
-            'level': 'ERROR',
+            'level': 'DEBUG' if DEBUG else 'ERROR',
             'propagate': True,
         },
         'peewee': {
             'handlers': ['console', 'syslog', ],
-            'level': 'DEBUG',
+            'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': True,
         },
         'main': {
             'handlers': ['console', 'syslog', ],
-            'level': 'INFO',
+            'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': True,
         },
     },

@@ -1,3 +1,4 @@
+import initdb
 import logging.config
 
 from telegram.ext import Updater
@@ -11,6 +12,8 @@ logger = logging.getLogger('main')
 def main():
     logging.config.dictConfig(settings.LOGGING)
     updater = Updater(settings.TELEGRAM_TOKEN)
+
+    initdb.create_tables()
 
     dp = updater.dispatcher
     dp.add_handler(echo.handler)

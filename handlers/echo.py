@@ -1,6 +1,5 @@
 import logging
 
-import peewee
 from telegram.ext import MessageHandler, Filters, BaseFilter
 
 from models import Message
@@ -18,6 +17,9 @@ class ExcludeTagFilter(BaseFilter):
 
 
 def callback(bot, update):
+    if settings.DEBUG:
+        logger.debug('update: %s', update)
+
     reply_markup = get_reply_markup()
     text = format_text(update.message.from_user, update.message.caption)
     kwargs = dict(chat_id=update.message.chat_id, reply_markup=reply_markup, caption=text)
@@ -31,15 +33,16 @@ def callback(bot, update):
     else:
         return
 
-    db.connect()
     try:
-        Message.create(message_id=bot_msg.message_id, chat_id=update.message.chat_id, user_id=update.message.from_user.id)
-    except peewee.PeeweeException as e:
-        logger.error(e, exc_info=True)
-    finally:
-        db.close()
-
-    bot.delete_message(update.message.chat_id, update.message.message_id)
+        with db:
+            Message.create(
+                message_tg_id=bot_msg.message_id,
+                chat_tg_id=update.message.chat_id,
+                user_tg_id=update.message.from_user.id
+            )
+        bot.delete_message(update.message.chat_id, update.message.message_id)
+    except Exception:
+        logger.exception('exception while adding message %s', update)
 
 
 filters = (Filters.photo | Filters.video | Filters.document) & ExcludeTagFilter()

@@ -11,13 +11,13 @@ class BaseModel(peewee.Model):
 
 
 class User(BaseModel):
-    user_id = peewee.IntegerField(verbose_name='id в Telegram')
+    user_tg_id = peewee.BigIntegerField(verbose_name='id в Telegram')
 
 
 class Message(BaseModel):
-    chat_id = peewee.IntegerField(verbose_name='id чата')
-    message_id = peewee.IntegerField(verbose_name='id сообщения')
-    user_id = peewee.IntegerField(verbose_name='id пользователя')
+    chat_tg_id = peewee.BigIntegerField(verbose_name='id чата')
+    message_tg_id = peewee.BigIntegerField(verbose_name='id сообщения')
+    user_tg_id = peewee.BigIntegerField(verbose_name='id пользователя')
     # user = peewee.ForeignKeyField(User, backref='messages')
 
     def get_likes_by_type(self):
@@ -30,7 +30,7 @@ class Message(BaseModel):
 
 class Like(BaseModel):
     message = peewee.ForeignKeyField(Message, backref='likes')
-    user_id = peewee.IntegerField(verbose_name='id пользователя')
+    user_tg_id = peewee.BigIntegerField(verbose_name='id пользователя')
     # user = peewee.ForeignKeyField(User, backref='likes')
 
     LIKE = 1
