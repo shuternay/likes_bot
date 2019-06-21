@@ -1,9 +1,9 @@
-from telegram import InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import InlineKeyboardMarkup, InlineKeyboardButton, User
 
 from models import Like
 
 
-def format_text(user, text):
+def format_text(user: User, text):
     return '{0}\nSender: {1} {2}'.format(text or '', user.first_name or '', user.last_name or '')
 
 

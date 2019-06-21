@@ -1,5 +1,6 @@
 import logging
 
+import telegram
 from telegram.ext import MessageHandler, BaseFilter
 
 from models import Message
@@ -11,12 +12,12 @@ logger = logging.getLogger('request.{0}'.format(__file__))
 
 
 class IncludeTagFilter(BaseFilter):
-    def filter(self, message):
+    def filter(self, message: telegram.Message):
         caption = message.text or ''
         return any(('#{0}'.format(tag) in caption for tag in settings.INCLUDE_TAGS))
 
 
-def callback(bot, update):
+def callback(bot: telegram.Bot, update: telegram.Update):
     if settings.DEBUG:
         logger.debug('update: %s', update)
 

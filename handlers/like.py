@@ -1,5 +1,6 @@
 import logging
 
+import telegram
 from telegram.ext import CallbackQueryHandler
 
 from models import Message, Like
@@ -10,7 +11,7 @@ from utils import get_reply_markup
 logger = logging.getLogger('request.{0}'.format(__file__))
 
 
-def callback(bot, update):
+def callback(bot: telegram.Bot, update: telegram.Update):
     query = update.callback_query
     like_type = query.data
 
