@@ -1,20 +1,15 @@
 import logging
 
 import telegram
-from telegram.ext import MessageHandler, BaseFilter
+from telegram.ext import MessageHandler
 
+from filters import ExcludeSelfForwardFilter, IncludeTagFilter
 from models import Message
 from project import settings
 from project.db import db
 from utils import get_reply_markup, format_text
 
 logger = logging.getLogger('request.{0}'.format(__file__))
-
-
-class IncludeTagFilter(BaseFilter):
-    def filter(self, message: telegram.Message):
-        caption = message.text or ''
-        return any(('#{0}'.format(tag) in caption for tag in settings.INCLUDE_TAGS))
 
 
 def callback(bot: telegram.Bot, update: telegram.Update):
@@ -38,5 +33,5 @@ def callback(bot: telegram.Bot, update: telegram.Update):
         logger.exception('exception while adding text message %s', update)
 
 
-filters = IncludeTagFilter()
+filters = IncludeTagFilter() & ExcludeSelfForwardFilter()
 handler = MessageHandler(filters, callback)
