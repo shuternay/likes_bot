@@ -1,0 +1,15 @@
+version: '3.7'
+
+services:
+  app:
+    build: .
+    image: likes_bot_app
+    depends_on:
+      - db
+    restart: always
+
+  db:
+    image: postgres:latest
+    volumes:
+      - ${PG_DATA}:/var/lib/postgresql/data/
+    restart: always
