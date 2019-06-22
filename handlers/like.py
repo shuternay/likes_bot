@@ -41,7 +41,8 @@ def callback(bot: telegram.Bot, update: telegram.Update):
                     like.save()
             else:
                 if user_tg_id == msg.user_tg_id:
-                    if like_type == str(Like.DISLIKE):
+                    like_dict = msg.get_likes_by_type()
+                    if like_type == str(Like.DISLIKE) and like_dict[Like.LIKE] < settings.DELETE_THRESHOLD:
                         bot.delete_message(chat_tg_id, message_tg_id)
                     query.answer()
                     return
